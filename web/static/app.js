@@ -186,7 +186,14 @@ function createPageTile(pageNum) {
   rotateBtn.className = "tile-btn rotate-btn";
   rotateBtn.textContent = "↻";
   rotateBtn.title = "Rotate 90°";
-  rotateBtn.addEventListener("click", () => {
+  // draggable=false alone doesn't reliably stop a draggable ancestor from
+  // hijacking the gesture in every engine — bailing out of the tile's own
+  // dragstart (see enableDragReorder) is what actually prevents a press-
+  // and-slightly-move on this button from starting a tile drag instead of
+  // registering as a click.
+  rotateBtn.draggable = false;
+  rotateBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
     const next = (parseInt(tile.dataset.rotate, 10) + 90) % 360;
     tile.dataset.rotate = String(next);
     canvas.style.transform = `rotate(${next}deg)`;
@@ -198,7 +205,9 @@ function createPageTile(pageNum) {
   removeBtn.className = "tile-btn remove-btn";
   removeBtn.textContent = "✕";
   removeBtn.title = "Drop this page from the export";
-  removeBtn.addEventListener("click", () => {
+  removeBtn.draggable = false;
+  removeBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
     tile.classList.toggle("removed");
     tile.dataset.removed = tile.classList.contains("removed") ? "1" : "";
     removeBtn.title = tile.classList.contains("removed") ? "Restore this page" : "Drop this page from the export";
@@ -232,6 +241,14 @@ function enableDragReorder(container, itemSelector) {
   let dragged = null;
 
   container.addEventListener("dragstart", (e) => {
+    // A press-and-slightly-move on a control button (rotate/remove) reads
+    // to the browser as the start of a drag gesture unless explicitly
+    // rejected here — without this, that button's own click handler never
+    // fires and the tile silently starts dragging instead.
+    if (e.target.closest(".tile-btn")) {
+      e.preventDefault();
+      return;
+    }
     const item = e.target.closest(itemSelector);
     if (!item) return;
     dragged = item;
