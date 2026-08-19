@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDF Toolkit</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main class="app">
+
+  <div id="dropZone" class="drop-zone">
+    <p class="drop-title">Drop PDFs here</p>
+    <p class="drop-sub">or click to choose — drop one to edit it, drop several to merge them</p>
+    <input id="fileInput" type="file" accept="application/pdf" multiple hidden>
+  </div>
+
+  <div id="error" class="error hidden"></div>
+
+  <section id="lockedSection" class="locked-section hidden">
+    <p>This PDF is password protected. Enter its password to remove protection.</p>
+    <div class="password-row">
+      <input id="unlockPassword" type="password" placeholder="Password" autocomplete="off">
+      <button id="unlockBtn" class="btn primary" type="button">Remove password</button>
+    </div>
+  </section>
+
+  <section id="workspace" class="workspace hidden">
+    <div class="workspace-header">
+      <span id="workspaceFilename" class="workspace-filename"></span>
+      <button id="startOver" class="link-btn" type="button">Start over</button>
+    </div>
+
+    <p class="hint">Drag to reorder, click ↻ to rotate a page, click ✕ to drop it from the export.</p>
+    <div id="pageGrid" class="page-grid"></div>
+
+    <div class="action-bar">
+      <button id="exportBtn" class="btn primary" type="button">Export</button>
+      <button id="splitBtn" class="btn" type="button">Split…</button>
+      <button id="compressBtn" class="btn" type="button">Compress</button>
+      <button id="protectBtn" class="btn" type="button">Add password…</button>
+    </div>
+    <p class="hint">Split, Compress, and Add password each act on the original file, not your edits above.</p>
+
+    <div id="splitPanel" class="inline-panel hidden">
+      <label class="field">Pages per file
+        <input id="splitSpan" type="number" min="1" value="1">
+      </label>
+      <button id="splitConfirm" class="btn primary" type="button">Split</button>
+      <button id="splitCancel" class="link-btn" type="button">Cancel</button>
+    </div>
+
+    <div id="protectPanel" class="inline-panel hidden">
+      <label class="field">Password
+        <input id="protectPassword" type="password" autocomplete="off">
+      </label>
+      <button id="protectConfirm" class="btn primary" type="button">Add password</button>
+      <button id="protectCancel" class="link-btn" type="button">Cancel</button>
+    </div>
+  </section>
+
+  <section id="mergeSection" class="merge-section hidden">
+    <div class="workspace-header">
+      <span>Merging <span id="mergeCount"></span> files</span>
+      <button id="mergeStartOver" class="link-btn" type="button">Start over</button>
+    </div>
+    <p class="hint">Drag to reorder.</p>
+    <ol id="mergeList" class="merge-list"></ol>
+    <div class="action-bar">
+      <button id="mergeBtn" class="btn primary" type="button">Merge</button>
+    </div>
+  </section>
+
+  <div id="progress" class="progress hidden">
+    <div class="progress-bar"><div id="progressFill" class="progress-fill indeterminate"></div></div>
+    <div id="progressLabel" class="progress-label">Processing…</div>
+  </div>
+
+  <div id="doneActions" class="done-actions hidden">
+    <span id="doneMessage" class="done-message"></span>
+    <div class="done-buttons">
+      <button id="openFile" class="btn" type="button">Open file</button>
+      <button id="showFolder" class="btn" type="button">Show in folder</button>
+    </div>
+  </div>
+
+</main>
+<script type="module" src="/app.js"></script>
+</body>
+</html>
