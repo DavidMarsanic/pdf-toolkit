@@ -1,5 +1,14 @@
 {
   "version": 1,
+  "dependencies": [
+    {
+      "id": "pdfcpu",
+      "name": "pdfcpu",
+      "version": "0.15.0",
+      "homepage": "https://github.com/pdfcpu/pdfcpu",
+      "note": "Compiled directly into this binary — the actual PDF engine behind every operation here (merge, split, rotate, compress, encrypt). Not a separate install; listed for transparency about what this app is built on."
+    }
+  ],
   "requirements": [
     {
       "id": "chromium-browser",
