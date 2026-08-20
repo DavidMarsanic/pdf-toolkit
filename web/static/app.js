@@ -149,7 +149,7 @@ async function loadSingleFile(file) {
     pageGrid.appendChild(tile);
     tiles.push(tile);
   }
-  enableDragReorder(pageGrid, ".page-tile");
+  enableDragReorder(pageGrid, ".page-tile", "x");
 
   // Render thumbnails after the grid is in the DOM so layout/scroll
   // position settles immediately — rendering itself happens page by page,
@@ -237,8 +237,29 @@ async function renderPageThumb(pdfDoc, pageNum, tile) {
 
 // ---- drag-and-drop reorder (shared by page grid + merge list) -------------
 
-function enableDragReorder(container, itemSelector) {
+// axis picks which half of the hovered item's bounding box decides
+// "insert before" vs "insert after": "x" (left/right) for the page grid,
+// whose tiles are laid out left-to-right, and "y" (top/bottom) for the
+// merge list, which is a vertical stack. Getting this wrong doesn't break
+// dragging outright, but it makes the merge list nearly unusable: a user
+// grabbing a row by its handle (the left edge) and dragging straight down
+// keeps their cursor pinned to the row's left half the whole time, and an
+// x-axis check reads that as "before" no matter how far down they drag —
+// so a row can never be moved to the end of the list.
+function enableDragReorder(container, itemSelector, axis = "x") {
+  // loadSingleFile()/loadMergeFiles() can each run more than once against
+  // the same persistent container (e.g. "Start over" then loading another
+  // file) — guard against re-registering a whole extra set of listeners
+  // every time, which would leave stale closures piling up on the DOM node.
+  if (container.dataset.dragReorderBound) return;
+  container.dataset.dragReorderBound = "1";
+
   let dragged = null;
+
+  function isBefore(e, over) {
+    const rect = over.getBoundingClientRect();
+    return axis === "y" ? e.clientY - rect.top < rect.height / 2 : e.clientX - rect.left < rect.width / 2;
+  }
 
   container.addEventListener("dragstart", (e) => {
     // A press-and-slightly-move on a control button (rotate/remove) reads
@@ -254,6 +275,11 @@ function enableDragReorder(container, itemSelector) {
     dragged = item;
     item.classList.add("dragging");
     e.dataTransfer.effectAllowed = "move";
+    // Some engines (Safari/WebKit in particular) require dataTransfer to
+    // carry *something* set during dragstart to treat the gesture as a
+    // valid drag at all — harmless here since the payload itself is never
+    // read, the reorder happens purely via the DOM references above.
+    e.dataTransfer.setData("text/plain", "");
   });
 
   container.addEventListener("dragend", () => {
@@ -271,18 +297,14 @@ function enableDragReorder(container, itemSelector) {
     container.querySelectorAll(".drop-before, .drop-after").forEach((el) => {
       el.classList.remove("drop-before", "drop-after");
     });
-    const rect = over.getBoundingClientRect();
-    const before = e.clientX - rect.left < rect.width / 2;
-    over.classList.add(before ? "drop-before" : "drop-after");
+    over.classList.add(isBefore(e, over) ? "drop-before" : "drop-after");
   });
 
   container.addEventListener("drop", (e) => {
     const over = e.target.closest(itemSelector);
     if (!over || !dragged || over === dragged) return;
     e.preventDefault();
-    const rect = over.getBoundingClientRect();
-    const before = e.clientX - rect.left < rect.width / 2;
-    container.insertBefore(dragged, before ? over : over.nextSibling);
+    container.insertBefore(dragged, isBefore(e, over) ? over : over.nextSibling);
   });
 }
 
@@ -376,7 +398,7 @@ function loadMergeFiles(files) {
     mergeList.appendChild(li);
   });
 
-  enableDragReorder(mergeList, ".merge-item");
+  enableDragReorder(mergeList, ".merge-item", "y");
   mergeSection.classList.remove("hidden");
 }
 

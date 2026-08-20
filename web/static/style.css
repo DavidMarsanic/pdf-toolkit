@@ -219,6 +219,11 @@ body {
 }
 .merge-item:active { cursor: grabbing; }
 .merge-item.dragging { opacity: 0.4; }
+/* Vertical list, so the insertion-point indicator goes above/below the
+   row (top/bottom box-shadow), unlike .page-tile's left/right — see the
+   axis parameter on enableDragReorder in app.js. */
+.merge-item.drop-before { box-shadow: 0 -2px 0 var(--accent); }
+.merge-item.drop-after { box-shadow: 0 2px 0 var(--accent); }
 .merge-item .drag-handle { color: var(--muted); }
 .merge-item .merge-name {
   flex: 1;
